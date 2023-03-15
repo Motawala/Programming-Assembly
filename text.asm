@@ -3,21 +3,22 @@
 
 #Variables
 #$t0 = my_array
-#$t1 = length
-#$t2  = max
-#$t3 = counter
+#$s0 = size
+#$t2 = max Number
 
 .data
 my_array: .word	1, 2, 3, 4, 8, 9
 size:	.word	5
+#msg:	.asciiz	"Maximum Number: "
 
 .text
 .globl main
 main:
-	la $t0, my_array
-	la $s0, size
+	la $t0, my_array	#loads the array into $t0
+	la $s0, size		#loads to the size of the array in $s0
+	#la $t4, msg
 	move $t1, $s0
-	lw $t2, 0($t0)
+	lw $t2, 0($t0)		#loads the 1st element of an array
 	
 	loop:
 		#If the size of an array is 0 exit.
@@ -35,11 +36,7 @@ main:
 		addi $t1, $t1, -1
 		bne $t1, $zero, loop
 		
-		
-
-	end:
-	li $v0, 1
-	move $a0, $t2
+	#Exits the Program
+	end:	
+	li $v0, 10
 	syscall
-		li $v0, 10
-		syscall
