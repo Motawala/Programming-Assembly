@@ -1,5 +1,6 @@
 .data
-infix:	.asciiz	"4(3+(5-2))"
+user_prompt:	.asciiz	"Enter the infix Expression: "
+infix:	.space	50
 postfix:	.asciiz	""
 newLine:	.asciiz	"\n"
 
@@ -8,6 +9,15 @@ newLine:	.asciiz	"\n"
 .text
 
 main:
+	li $v0, 4						#Printing the user propmt for the Expression
+	la $a0, user_prompt
+	syscall
+	
+	li $v0, 8						#Taking the expression input from the user
+	la $a0, infix					#Storing the user input in the infix variable
+	li $a1, 50
+	syscall
+
 	la $s0, infix					#Load the infix expression.
 	la $s1, postfix					#Intitialize postfix expression.
 
@@ -62,6 +72,7 @@ pop_stack:
 	
 	j next_char
 add_operand:
+	
 	
 	j next_char
 	
