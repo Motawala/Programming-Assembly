@@ -10,12 +10,12 @@ newLine:	.asciiz	"\n"
 .text
 
 main:
-	li $v0, 4
+	li $v0, 4						#Prints the prompt message to enter the expression
 	la $a0, msg
 	syscall
 	
 
-	li $v0, 8
+	li $v0, 8						#Loads the entered expression
 	la $a0, my_str
 	li $a1, 100
 	syscall
@@ -25,17 +25,20 @@ main:
 	la $s0, my_str
 	la $s1, postfix
 	
-	addi $sp, $sp, -50
+	addi $sp, $sp, -53				#Allocating the space in stack and initializing the frame pointer
 	add $fp, $sp, $zero
+	lb $t0, 1($sp)
+	lb $t1, 1($sp)
+	lb $t2, 1($sp)
 	addi $s2, $s2, 0
 
 	
 
 loop:
 	
-	lb $t0, ($s0)
+	lb $t0, ($s0)						#Loads the char from the infix expression
 	
-	beq $t0, $zero, exit
+	beq $t0, $zero, clear_stack			#If the infix expresion ends exit
 	
 	
 	beq $t0, 0x28, push					#If the char is equal to (	
@@ -44,42 +47,42 @@ loop:
 	beq $t0, 0x2B, operator				#If the char is equal to +
 	beq $t0, 0x2D, operator				#If the char is equal to -
 	
-	jal add_postfix
+	jal add_postfix						#Adds the operands to the postfix expression
 
 add_postfix:
-	sb $t0, ($s1)
+	sb $t0, ($s1)					
 	addi $s1, $s1, 1
 	
 	addi $s0, $s0, 1
 	jal loop
-next_char:	
+next_char:								#Moves to the next char in the infix expression
 	addi $s0, $s0, 1
 	jal loop
-push:
-	beq $sp, -50, empty
+push:									#Pushes the char into the stack
+	beq $sp, $fp, empty
 	
 	addi $sp, $sp, -1
 	sb $t0, ($sp)
 
 	addi $s2, $s2, 1
-	addi $s0, $s0, 1
+	addi $s0, $s0, 1					#Increments the infix expression
 	jal loop
-empty:
-	addi $sp, $sp, -1
+empty:								
+	addi $sp, $sp, -1					#If the stack is empty push to the stack
 	sb $t0, ($sp)
 	
 	addi $s2, $s2, 1
 	addi $s0, $s0, 1
 	jal loop
-operator:
-	beq $sp, -50, empty
+operator:								#Checks the conditions for the operators
+	beq $sp, $fp, empty
 	
 	lb $t1, ($sp)
 	beq $t1, 0x2B, add_element
 	beq $t1, 0x2D, add_element
 	
 	jal push
-add_element:
+add_element:							#Adds the scanned operator to the postfix expression
 	sb $t1, ($s1)
 	addi $s1, $s1, 1
 	
@@ -87,12 +90,12 @@ add_element:
 	addi $s2, $s2, -1
 	
 	jal operator
-load_element:
+load_element:							#Checks the condition for the cloasing bracket
 	lb $t2, ($sp)
 	bne $t2, 0x28, add_element_postfix
 	
 	jal pop
-add_element_postfix:
+add_element_postfix:					#adds the scanned char to the postfix expression
 	sb $t2, ($s1)
 	addi $s1, $s1, 1
 	
@@ -100,29 +103,31 @@ add_element_postfix:
 	addi $s2, $s2, -1
 	
 	jal load_element
-pop:
+pop:									#Pops the char from the stack
 	addi $sp, $sp, 1
 	
 	addi $s0, $s0, 1
 	jal loop
-
-pop_stack:
+clear_stack:
+	lb $t0, ($sp)
+	bne $t0, $zero, pop_stack
+	
+	sb $t0, 1($sp)
+	sb $t1, 1($sp)
+	sb $t2, 1($sp)
+	addi $sp, $sp, 53
+	addi $fp, $fp, 53
+	jal exit
+pop_stack:								#Pops the remaining elements from the stack
 	sb $t0, ($s1)
 	addi $s1, $s1, 1
 	
 	lb $t0, ($sp)
-	beq $t0, $zero, exit
+	beq $t0, $zero, clear_stack
 	addi $sp, $sp, 1
 	
 	jal pop_stack
-exit:
-	
-	lb $t0, ($sp)
-	bne $t0, $zero, pop_stack
-	
-	addi $sp, $sp, 50
-	addi $fp, $fp, 50
-
+exit:									#Exits the program and prints the data
 	li $v0, 4
 	la $a0, newLine
 	syscall
