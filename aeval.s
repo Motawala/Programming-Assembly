@@ -4,7 +4,6 @@ postfix: .space 200
 my_str:	.space	100
 postfix_msg:	.asciiz	"Conversion to postfix expression: "
 newLine:	.asciiz	"\n"
-result: .space 200
 
 .globl main
 
@@ -25,7 +24,7 @@ main:
 
 	la $s0, my_str
 	la $s1, postfix
-	la $s2, result
+	add $s2, $s2, $zero
 	addi $sp, $sp, -55				#Allocating the space in stack and initializing the frame pointer
 	add $fp, $sp, $zero
 	lb $t0, 1($sp)
@@ -137,6 +136,7 @@ evaluate_postfix:
 	jal push_operand
 push_operand:
 	addi $sp, $sp, -1
+	addi $t2, $t2, -48
 	sb $t2, ($sp)
 	
 	addi $s1, $s1, 1
@@ -144,10 +144,14 @@ push_operand:
 pop_add:
 	lb $t3, ($sp)
 	addi $sp, $sp, 1
+	
+	
 	lb $t4, ($sp)
 	addi $sp, $sp, 1
 	
+	
 	add $t5, $t3, $t4
+	
 	
 	addi $s1, $s1, 1
 	addi $sp, $sp, -1
@@ -159,11 +163,15 @@ pop_add:
 pop_sub:
 	lb $t3, ($sp)
 	addi $sp, $sp, 1
+	
+	
 	lb $t4, ($sp)
 	addi $sp, $sp, 1
 	
+	
 	sub	$t5, $t4, $t3
-		
+	
+	
 	addi $s1, $s1, 1
 	addi $sp, $sp, -1
 	sb $t5, ($sp)
@@ -174,10 +182,14 @@ pop_sub:
 	jal add_results
 dealloacte_space:
 	lb $t2, ($sp)
-	sb $t2, ($s2)
+	
+	
+	add $s2, $zero, $t2
+	li $v0, 1
+	move $a0, $s2
+	syscall
 	addi $sp, $sp, 1
-	addi $s2, $s2, 1
-	#bne $t2, $zero, add_results
+	
 	addi $sp, $sp, 50
 	addi $fp, $fp, 50
 	
@@ -207,11 +219,12 @@ exit:									#Exits the program and prints the data
 	li $v0, 4
 	la $a0, newLine
 	syscall
+
 	
-	
-	li $v0, 4
-	la $a0, result
+	li $v0, 1
+	move $a0, $s2
 	syscall
 
 	li $v0, 10
 	syscall
+	
